@@ -15,10 +15,10 @@
     Macros
 */
 
-#define vine_MAX_THREADS 2
+#define VINE_MAX_THREADS 2
 
-#ifndef vine_MAX_THREADS
-    #define vine_MAX_THREADS 1e16
+#ifndef VINE_MAX_THREADS
+    #define VINE_MAX_THREADS 1e16
 #endif
 
 /*
@@ -195,7 +195,7 @@ namespace {
 
 static size_t get_thread_pool_size() {
     size_t hc = std::thread::hardware_concurrency();
-    if (hc > vine_MAX_THREADS) hc = vine_MAX_THREADS;
+    if (hc > VINE_MAX_THREADS) hc = VINE_MAX_THREADS;
     return hc;
 }
 
@@ -473,45 +473,4 @@ int main() {
     }
 
     free_thread_pool();
-}
-
-/*
-    Test
-*/
-
-#include <iostream>
-
-void func_1() {
-    std::cout << "Func 1\n" << std::flush;
-}
-
-void func_2();
-
-vine::stage stage_1;
-vine::func_stage_link fsl1(func_1, stage_1, {});
-
-vine::stage stage_2;
-vine::func_stage_link fsl2(func_2, stage_2, {});
-
-vine::machine machine1;
-vine::stage_machine_link s1l(stage_1, machine1, {});
-vine::stage_machine_link s2l(stage_2, machine1, { &s1l });
-
-vine::default_machine_link dml(machine1);
-
-
-vine::machine machine2;
-vine::stage_machine_link s22l(stage_2, machine2, {});
-
-void task_1(std::any a) {
-    std::cout << "Task\n" << std::flush;
-}
-
-void func_2() {
-    std::cout << "Func 2\n" << std::flush;
-
-    auto x = vine::issue_task(task_1, {});
-    
-
-    vine::set_machine(machine2);
 }

@@ -11,6 +11,11 @@
     class_name& operator=(class_name&& oth) = delete;
 
 //=================
+// Compile Flags
+
+//VINE_MAX_THREADS - max number of thread workers
+    
+//=================
 // Stage
 
 namespace vine {
