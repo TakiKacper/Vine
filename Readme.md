@@ -1,5 +1,5 @@
 # Vine 🌱
-*A minimalistic C++ framework for creating applications, by linking functions into an execution graph*
+*A minimalistic C++ graph based framework for creating applications*
 
 Vine treats program as graph of functionalisites - with order depedencies between them.
 
