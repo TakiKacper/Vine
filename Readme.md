@@ -214,15 +214,15 @@ Tasks use idling worker threads and never block your machine execution.
 ---
 
 ## Building 🛠
+1. Download Vine repo
+2. Add *include* folder to your build system include paths
+3. Compile all files in `source/` (Requires **C++17** or newer)
 
-1. Include Vine:  
+To use Vine include it's header:
 
 ```cpp
 #include "vine/vine.hpp"
 ```
-
-2. Compile all files in `source/`  
-3. Requires **C++17** or newer  
 
 Optional compile flag:  
 * `VINE_MAX_THREADS=[number]` – max number of worker threads  
