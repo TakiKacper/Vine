@@ -3,15 +3,28 @@
 
 Vine treats program as a graph of functionalities - with order dependencies between them.
 
-## Features
+# Why use Vine?
+
+When writing a multithreaded program, often the programmer has to synchronise threads, by making one wait for another.
+If designed poorly, threads may be regularly spending time idle waiting for each other.
+
+Vine solves this design problem by implementing your program as a graph of functionalities, with dependencies between them.
+Instead of you manually orchestrating when functions or threads are run, Vine analyzes the dependency graph and ensures everything runs as soon as it can — and in parallel when possible.
+
+Vine also provides a task system, which you can use to offload occasional or long-running jobs (such as asset loading, file I/O, or background computations) without blocking the main execution flow.
+
+This approach gives you:
+* **Less boilerplate** – you only declare dependencies between tasks, Vine handles the scheduling
+* **Better performance** – no wasted CPU cycles on idle threads
+* **Safer design** – you avoid deadlocks and tangled synchronization logic
+* **Scalable architecture** – easily extend your program with new stages or machines without rewriting the execution flow
 * **Parallel Execution** - if something can be done in parallel, vine will do it in parallel to improve performance
-* **Easily Scalable** - implement your functionality in function, specify dependencies and you're done!
 * **Task System** - Easy async execution for longer jobs
 
 ## Table of Contents
 
 - [Introduction](#Vine)
-- [Features](#features)
+- [Why use Vine](#why-use-vine)
 - [Concepts](#concepts)
   - [Stage](#stage)
   - [Machine](#machine)
