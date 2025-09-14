@@ -30,15 +30,15 @@ In short: you describe *what depends on what*, and Vine figures out *when* and *
 ---
 
 ## Table of Contents
-- [Why use Vine](#why-use-vine-)
+- [Why use Vine](#why-use-vine-🚀)
 - [Concepts](#concepts)
-  - [Stage](#stage)
-  - [Machine](#machine)
-  - [Executing Machines](#executing-machines)
-  - [Program Shutdown](#program-shutdown)
-  - [Tasks](#tasks)
-- [Building](#building)
-- [Hello World Example](#hello-world-example)
+  - [Stage](#stage-🎭)
+  - [Machine](#machine-🏭)
+  - [Executing Machines](#executing-machines-▶️)
+  - [Program Shutdown](#program-shutdown-🛑)
+  - [Tasks](#tasks-🧵)
+- [Building](#building-🛠)
+- [Hello World Example](#hello-world-example-🌍)
 
 ---
 
