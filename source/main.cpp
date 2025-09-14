@@ -26,10 +26,10 @@
 */
 
 namespace {
-    std::mutex            state_mutex;
+    std::mutex           state_mutex;
     const vine::machine* current_machine = nullptr;
     const vine::machine* queued_machine  = nullptr;
-    bool                  should_shutdown = false;
+    bool                 should_shutdown = false;
 }
 
 vine::default_machine_link::default_machine_link(const machine& m) {
