@@ -29,18 +29,26 @@ In short: you describe *what depends on what*, and Vine figures out *when* and *
 
 ---
 
-## Table of Contents
-- [Why use Vine](#why-use-vine-🚀)
-- [Concepts](#concepts)
-  - [Stage](#stage-🎭)
-  - [Machine](#machine-🏭)
-  - [Executing Machines](#executing-machines-▶️)
-  - [Program Shutdown](#program-shutdown-🛑)
-  - [Tasks](#tasks-🧵)
-- [Building](#building-🛠)
-- [Hello World Example](#hello-world-example-🌍)
+## Hello World Example 🌍
 
----
+```cpp
+#include "vine/vine.hpp"
+#include <iostream>
+
+vine::stage stage1;
+
+void hello() { std::cout << "Hello"; }
+void world() { std::cout << " World!"; vine::request_shutdown(); }
+
+vine::func_stage_link hello_link(hello, stage1, {});
+vine::func_stage_link world_link(world, stage1, { &hello_link }); //world function depends on execution of hello function
+
+vine::machine machine1;
+vine::stage_machine_link example_stage_link(stage1, machine1, {});
+vine::default_machine_link default_link(machine1);
+
+// Output: "Hello World!"
+```
 
 ## Concepts
 
@@ -229,23 +237,3 @@ Optional compile flag:
 
 ---
 
-## Hello World Example 🌍
-
-```cpp
-#include "vine/vine.hpp"
-#include <iostream>
-
-vine::stage stage1;
-
-void hello() { std::cout << "Hello"; }
-void world() { std::cout << " World!"; vine::request_shutdown(); }
-
-vine::func_stage_link hello_link(hello, stage1, {});
-vine::func_stage_link world_link(world, stage1, { &hello_link });
-
-vine::machine machine1;
-vine::stage_machine_link example_stage_link(stage1, machine1, {});
-vine::default_machine_link default_link(machine1);
-
-// Output: "Hello World!"
-```
