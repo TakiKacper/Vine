@@ -23,7 +23,6 @@ This approach gives you:
 
 ## Table of Contents
 
-- [Introduction](#Vine-🌱)
 - [Why use Vine](#why-use-vine)
 - [Concepts](#concepts)
   - [Stage](#stage)
