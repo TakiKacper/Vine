@@ -1,29 +1,36 @@
-# Vine 🌱
-*A minimalistic C++ (17 >=) graph based framework for creating applications*
+# Vine 🌱  
+*A minimalistic C++17+ graph-based framework for creating applications*  
 
-Vine treats program as a graph of functionalities - with order dependencies between them.
+Vine lets you design your program as a **graph of functionalities** with explicit dependencies.  
+Instead of juggling threads, locks, and synchronization headaches, you focus only on **what needs to happen** and **what depends on what**.  
+Vine takes care of the rest — running everything as early and as parallel as possible.  
 
-# Why use Vine?
+---
 
-When writing a multithreaded program, often the programmer has to synchronise threads, by making one wait for another.
-If designed poorly, threads may be regularly spending time idle waiting for each other.
+## Why use Vine? 🚀
 
-Vine solves this design problem by implementing your program as a graph of functionalities, with dependencies between them.
-Instead of you manually orchestrating when functions or threads are run, Vine analyzes the dependency graph and ensures everything runs as soon as it can — and in parallel when possible.
+Multithreading is hard. Get it wrong, and your threads just sit around twiddling their thumbs, waiting for each other.  
+Get it *really* wrong, and you’re stuck in deadlocks and spaghetti sync code.  
 
-Vine also provides a task system, which you can use to offload occasional or long-running jobs (such as asset loading, file I/O, or background computations) without blocking the main execution flow.
+Vine fixes this by:  
+- Treating your program like a **dependency graph** (stages and machines).  
+- Running everything in **parallel** when possible.  
+- Giving you a **task system** for async one-offs (asset loading, I/O, background jobs) without blocking your main flow.  
 
-This approach gives you:
-* **Less boilerplate** – you only declare dependencies between tasks, Vine handles the scheduling
-* **Better performance** – no wasted CPU cycles on idle threads
-* **Safer design** – you avoid deadlocks and tangled synchronization logic
-* **Scalable architecture** – easily extend your program with new stages or machines without rewriting the execution flow
-* **Parallel Execution** - if something can be done in parallel, vine will do it in parallel to improve performance
-* **Task System** - Easy async execution for longer jobs
+In short: you describe *what depends on what*, and Vine figures out *when* and *where* things run.  
+
+**What you get:**  
+* ⚡ **Less boilerplate** – declare dependencies once, Vine handles scheduling  
+* 🏎 **Better performance** – no wasted CPU cycles, no idle waiting  
+* 🛡 **Safer design** – less chance of deadlocks or sync chaos  
+* 🌱 **Scalable architecture** – stages & machines make extending your program painless  
+* 🤹 **Parallel execution** – Vine squeezes out every drop of concurrency it can  
+* 📦 **Task system** – simple async execution for longer or rare jobs  
+
+---
 
 ## Table of Contents
-
-- [Why use Vine](#why-use-vine)
+- [Why use Vine](#why-use-vine-)
 - [Concepts](#concepts)
   - [Stage](#stage)
   - [Machine](#machine)
@@ -33,10 +40,13 @@ This approach gives you:
 - [Building](#building)
 - [Hello World Example](#hello-world-example)
 
+---
+
 ## Concepts
-### Stage
-A stage is a graph of functions. Each function in the stage may depend on other functions.
-When a stage is executed, the program walks on it's graph and execute all of it's functions with respect to their dependencies.
+
+### Stage 🎭
+A **stage** is a graph of functions. Each function may depend on other functions.  
+When a stage runs, Vine walks the graph and executes everything in the right order, parallelizing when possible.  
 
 ```cpp
 vine::stage rendering;
@@ -48,7 +58,7 @@ void render() { /* ... */ }
 vine::func_stage_link upload_link(
     upload, 
     rendering, 
-    {}
+    {} //no dependencies
 );
 
 vine::func_stage_link setup_link(
@@ -60,51 +70,47 @@ vine::func_stage_link setup_link(
 vine::func_stage_link render_link(
     render, 
     rendering, 
-    { &upload_link, &setup_link }
+    { &upload_link, &setup_link } // depends on upload and setup
 );
 ```
 
-Example above shows simple implementation of apps' rendering
+Execution order:  
 
-First we create ``stage`` *rendering* - it will hold all the logic related to rendering  
-
-Then we link our render logic to the stage using ``func_stage_link``s
-
-Note *upload*'s and *setup*'s links have no dependencies, therefore they are being executed right-away
-
-The *render_link* of *render* function though have dependencies - both *upload* and *setup*. Therefore *render* will be executed after *upload* and *setup*.
-
-``stage`` *rendering*:
 ```
- upload ---\
-           \/
+ upload - \
+           \
            render
-           /\
- setup ----/
+           /
+ setup ---/
 ```
 
-### Machine
-``Machine`` is a level up from ``stage`` - instead of being a graph of functions it is a graph of ``stage``s. Machine is the top abstraction over the execution in vine.
+---
+
+### Machine 🏭
+A **machine** is one level up — instead of functions, it’s a graph of stages.  
+This is the top abstraction in Vine.  
 
 ```cpp
-extern vine::stage game_logic;
-extern vine::stage physic;
-extern vine::stage networking;
+extern vine::stage 
+    game_logic, 
+    physic, 
+    networking;
 
-extern vine::stage game_logic_networking_sync;
-extern vine::stage game_logic_physics_sync;
+extern vine::stage 
+    game_logic_networking_sync, 
+    game_logic_physics_sync;
 
 vine::machine update;
 
 vine::stage_machine_link game_logic_link(
-    game_logic,
-    update,
-    {}
+    game_logic, 
+    update, 
+    {} //no dependencies
 );
 
 vine::stage_machine_link physic_link(
-    physic,
-    update,
+    physic, 
+    update, 
     {}
 );
 
@@ -115,54 +121,48 @@ vine::stage_machine_link networking_link(
 );
 
 vine::stage_machine_link game_logic_networking_sync_link(
-    game_logic_networking_sync,
-    update,
-    {}
+    game_logic_networking_sync, 
+    update, 
+    { &game_logic_link, &networking_link } //depends on game logic and networking
 );
 
 vine::stage_machine_link game_logic_physics_sync_link(
-    game_logic_physics_sync,
-    update,
-    {}
+    game_logic_physics_sync, 
+    update, 
+    { &game_logic_link, &physic_link } //depends on game logic and physic
 );
 ```
 
-In example above we create ``machine`` *update*. It consists of three independent nodes - game_logic, physic and networking ``stages``. 
+Flow looks like:  
 
-Those three works in parallel, and their results are then merged with two, relatively independent ``stage``s:   *game_logic_networking_sync* and *game_logic_physics_sync*.
-
-``machine`` *update*:
 ```
  physic -----------> game_logic_networking_sync
-                   /\
+                    /
                    /
  game_logic -------
                    \
-                   \/
+                    \
  networking -------> game_logic_physics_sync
 ```
 
-### Executing Machines
+---
 
-You need to specify the initial machine using ``default_machine_link``.
+### Executing Machines ▶️
+
+Pick an initial machine:  
 
 ```cpp
 extern vine::machine initial_machine;
-
-vine::default_machine_link default_machine_link(
-    initial_machine
-);
+vine::default_machine_link default_machine_link(initial_machine);
 ```
 
-Given machine will be executed on loop, unless it is changed with
+Swap to another machine mid-execution:  
 
 ```cpp
-void vine::set_machine(const machine&);
+vine::set_machine(new_machine);
 ```
 
-If this function is called during machine execution, instead of looping to the beginning, the program will begin to execute the newly set machine on loop.
-
-Given you can create flow machine on between machines:
+Using above you can build state machines on top of vine's machines:
 
 ```
 init_machine
@@ -174,95 +174,78 @@ game_loop_machine --> loading_screen_machine
 termination_machine
 ```
 
-Via such design you can decouple a lot of state from the stage's functions.
+---
 
-### Program Shutdown
+### Program Shutdown 🛑
 
-To end a vine program call
+End a Vine program cleanly:
 
 ```cpp
-void vine::request_shutdown();
+vine::request_shutdown();
 ```
+This function waits current machine execution finish, and then kill the program.
 
-### Tasks
+---
 
-Tasks can be used to handle rare jobs like assets loading etc.
+### Tasks 🧵
+
+Tasks let you run **background jobs** without blocking your main machine.  
 
 ```cpp
 void my_task(std::any arg) {
     std::cout << std::any_cast<int>(arg);
 }
 
-//somewhere in code
-vine::task_promise promise = vine::issue_task(my_task, {128});
+void some_sync_code() {
+    vine::task_promise promise = vine::issue_task(
+        my_task, 
+        {128}
+    );
 
-std::cout << promise.completed() << '\n';
-
-promise.join();
-
-std::cout << promise.completed() << '\n';
+    std::cout << promise.completed() << '\n';
+    promise.join();
+    std::cout << promise.completed() << '\n'; // true
+}
 ```
 
-Tasks are executed whenever there is a free thread, not executing machine's functions.
-Therefore tasks are secondary to the normal execution flow.
+Tasks use idling worker threads and never block your machine execution.  
+`vine::task_promise` lets you check or wait for completion.  
 
-``vine::task_promise`` can be used to synchronise with task state - check if it's completed, or wait is's completion.
+---
 
-## Building
+## Building 🛠
 
-To use vine, include it's header: ``vine/vine.hpp`` from ``include`` folder.  
+1. Include Vine:  
 
-You must also compile all files in ``source`` folder
-Vine requires c++ 17.
+```cpp
+#include "vine/vine.hpp"
+```
 
-Compile flags:
+2. Compile all files in `source/`  
+3. Requires **C++17** or newer  
 
-* **VINE_MAX_THREADS [number]** - max number of thread workers
+Optional compile flag:  
+* `VINE_MAX_THREADS=[number]` – max number of worker threads  
 
-## Hello World Example
+---
+
+## Hello World Example 🌍
 
 ```cpp
 #include "vine/vine.hpp"
 #include <iostream>
 
-// Define a stage
 vine::stage stage1;
 
-// Functions
-void hello() {
-    std::cout << "Hello";
-}
+void hello() { std::cout << "Hello"; }
+void world() { std::cout << " World!"; vine::request_shutdown(); }
 
-void world() {
-    std::cout << " World!";
-    vine::request_shutdown();
-}
+vine::func_stage_link hello_link(hello, stage1, {});
+vine::func_stage_link world_link(world, stage1, { &hello_link });
 
-// Link functions to the stage
-vine::func_stage_link hello_link(
-    hello,
-    stage1,
-    {} // no dependencies
-);
-
-vine::func_stage_link world_link(
-    world,
-    stage1,
-    { &hello_link } // depends on hello
-);
-
-// Define a machine
 vine::machine machine1;
-
-// Link stage to machine
-vine::stage_machine_link example_stage_link(
-    stage1,
-    machine1,
-    {}
-);
-
-// Set default machine
+vine::stage_machine_link example_stage_link(stage1, machine1, {});
 vine::default_machine_link default_link(machine1);
 
-//output: "Hello World!"
+// Output: "Hello World!"
 ```
