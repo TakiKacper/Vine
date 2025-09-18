@@ -15,8 +15,6 @@
     Macros
 */
 
-#define VINE_MAX_THREADS 2
-
 #ifndef VINE_MAX_THREADS
     #define VINE_MAX_THREADS 1e16
 #endif
