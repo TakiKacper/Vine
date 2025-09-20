@@ -97,26 +97,20 @@ namespace vine {
 // Batch
 
 namespace vine {
+    // batch creates given container for each vine worker thread
+    // you can sync it's information by iterating on it's containers
     template<class container>
     struct batch {
     private:
         std::vector<container> containers;
-
     public:
-        batch() {
-            auto threads = get_threads_amount();
-            containers.resize(threads);
-        };
+        batch();
 
-        container& get_local_container() {
-            return containers[get_thread_id()];
-        }
+        // returns container assigned to this thread
+        container&              get_local_container();
 
-        std::vector<container*> get_all_containers() {
-            std::vector<container*> res;
-            for (auto& c : containers) res.push_back(&c);
-            return res;
-        }
+        // returns list of all batch containers
+        std::vector<container*> get_all_containers();
     };
 }
 
@@ -145,3 +139,24 @@ namespace vine {
 };
 
 #undef DELETE_MOVE_COPY
+
+//=================
+// Impl
+
+template<class container>
+vine::batch<container>::batch() {
+    auto threads = get_threads_amount();
+    containers.resize(threads);
+}
+
+template<class container>
+container& vine::batch<container>::get_local_container() {
+    return containers[get_thread_id()];
+}
+
+template<class container>
+std::vector<container*> vine::batch<container>::get_all_containers() {
+    std::vector<container*> res;
+    for (auto& c : containers) res.push_back(&c);
+    return res;
+}
