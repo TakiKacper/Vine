@@ -12,7 +12,7 @@
 #include <cstdlib>
 
 /*
-    Macros
+    Threads Amount
 */
 
 #define VINE_MAX_THREADS 2
@@ -20,6 +20,12 @@
 #ifndef VINE_MAX_THREADS
     #define VINE_MAX_THREADS 1e16
 #endif
+
+unsigned int vine::get_threads_amount() {
+    size_t hc = std::thread::hardware_concurrency();
+    if (hc > VINE_MAX_THREADS) hc = VINE_MAX_THREADS;
+    return hc;
+}
 
 /*
     State
@@ -186,23 +192,18 @@ void find_independants() {
     Thread Pool
 */
 
-static void thread_worker_loop();
+static void thread_worker_loop(unsigned int thread_id);
 
 namespace {
-    bool                     threads_should_terminate = false;
-    std::vector<std::thread> thread_pool;
-}
-
-static size_t get_thread_pool_size() {
-    size_t hc = std::thread::hardware_concurrency();
-    if (hc > VINE_MAX_THREADS) hc = VINE_MAX_THREADS;
-    return hc;
+    thread_local unsigned int   thread_id;
+    bool                        threads_should_terminate = false;
+    std::vector<std::thread>    thread_pool;
 }
 
 static void alloc_thread_pool(size_t size) {
     threads_should_terminate = false;
     for (size_t i = 0; i < size; i++) 
-        thread_pool.push_back(std::thread{thread_worker_loop});
+        thread_pool.push_back(std::thread{thread_worker_loop, i});
 }
 
 namespace {
@@ -369,8 +370,15 @@ static void thread_worker_handle_task(task_enqueued& e) {
     e.promise.impl->condition.notify_all();
 }
 
-static void thread_worker_loop() {
+unsigned int vine::get_thread_id() {
+    return thread_id;
+}
+
+static void thread_worker_loop(unsigned int thread_id_arg) {
     //Todo: Exceptions
+
+    // Set Local Id
+    thread_id = thread_id_arg;
 
     while (!threads_should_terminate) {
         std::unique_lock lock(queues_mutex);
@@ -464,7 +472,7 @@ int main() {
 
     find_independants();
 
-    auto threads = get_thread_pool_size();
+    auto threads = vine::get_threads_amount();
     alloc_thread_pool(threads);
 
     while (!should_shutdown) {
