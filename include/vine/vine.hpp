@@ -14,7 +14,7 @@
 //=================
 // Compile Flags
 
-//VINE_MAX_THREADS - max number of thread workers
+// VINE_MAX_THREADS - max number of thread workers
 
 //=================
 // State
