@@ -195,6 +195,35 @@ This function waits current machine execution finish, and then kill the program.
 
 ---
 
+### Batch 📦
+
+A batch is a thread-local container that gives each Vine worker thread its own instance of a data structure.
+Instead of juggling locks around a single shared container, you can let each thread work on its own memory - and combine results later.
+
+```cpp
+//create batch of int vectors
+vine::batch<std::vector<int>> results_batch;
+
+void parrel_job() {
+    auto& container = results_batch.get_local_container();
+    { save some data to container ... }
+}
+
+// possible calls of parrel_job from diffrent threads
+vine::func_stage_link parrel_link_1(parrel_job, s1, {});
+vine::func_stage_link parrel_link_2(parrel_job, s1, {});
+
+void sync() {
+    auto containers = results_batch.get_all_containers();
+    { combine results ... }
+}
+
+//execute sync after parrel jobs
+vine::func_stage_link sync_link(sync, s1, {
+     &parrel_link_1, &parrel_link_2 
+});
+```
+
 ### Tasks 🧵
 
 Tasks let you run **background jobs** without blocking your main machine.  
