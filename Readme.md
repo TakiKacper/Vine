@@ -164,7 +164,7 @@ extern vine::machine initial_machine;
 vine::default_machine_link default_machine_link(initial_machine);
 ```
 
-Swap to another machine mid-execution:  
+Swap to another machine (applied after current machine finish)
 
 ```cpp
 vine::set_machine(new_machine);
