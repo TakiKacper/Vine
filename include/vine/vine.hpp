@@ -124,7 +124,7 @@ namespace vine {
         struct implementation;
         implementation* impl;
 
-        task_promise() { impl = nullptr; };
+        task_promise() : impl(nullptr) {};
         ~task_promise();
 
         task_promise(const task_promise&);
