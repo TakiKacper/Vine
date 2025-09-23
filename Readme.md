@@ -52,6 +52,9 @@ vine::default_machine_link default_link(machine1);
 
 ## Concepts
 
+### Notes ⚠️
+* **Declaration order of Vine's object does not matter** - they can be scattered across all compilation units, and Vine will still be able to figure everything out.
+
 ### Stage 🎭
 A **stage** is a graph of functions. Each function may depend on other functions.  
 When a stage runs, Vine walks the graph and executes everything in the right order, parallelizing when possible.  
